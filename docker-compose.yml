@@ -11,7 +11,7 @@ services:
       - POSTGRES_DB=pipeline
     #   Map port 6432 (localhost) to port 5432 on the container
     ports:
-      - "6432:5432"
+      - "5432:5432"
 
   gitlab:
     image: 'gitlab/gitlab-ce:latest'
@@ -29,3 +29,20 @@ services:
       - '/srv/gitlab/config:/etc/gitlab'
       - '/srv/gitlab/logs:/var/log/gitlab'
       - '/srv/gitlab/data:/var/opt/gitlab'
+
+  cromwell_pipeline:
+    container_name: cromwell_pipeline
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: java -jar portal.jar
+    environment:
+      - CMWL_DB_SERVER_NAME=pipeline_db
+      - CMWL_DB_PORT_NUMBER=5432
+      - CMWL_DB_USER=pipeline
+      - CMWL_DB_PASSWORD=pipeline
+      - CMWL_DB_NAME=pipeline
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
