@@ -38,5 +38,6 @@ object WomTool4 extends App {
     ).find(_.looksParsable(mainFileContents)).getOrElse(new WdlDraft2LanguageFactory(ConfigFactory.empty()))
 
   val bundle = languageFactory.getWomBundle(mainFileContents, None, "{}", importResolvers, List(languageFactory))
+
   println(bundle.map((_, languageFactory)))
 }

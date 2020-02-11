@@ -7,9 +7,9 @@ import wom.executable.WomBundle
 
 trait WomToolAPI {
 
-  def validate(content: String, importResolver: ???): Either[NonEmptyList[String], (WomBundle, LanguageFactory)]
+//  def validate(content: String, importResolver: ???): Either[NonEmptyList[String], (WomBundle, LanguageFactory)]
 
-  def inputs(contents: String, importResolver: ???)
+//  def inputs(contents: String, importResolver: ???)
 
 //  def generateJsonFromParams(params: Seq[String]): Json
 }
