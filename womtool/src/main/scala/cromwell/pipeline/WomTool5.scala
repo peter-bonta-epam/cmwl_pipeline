@@ -94,9 +94,9 @@ object WomTool5 extends App {
 
   //*************************************************
 
-//  bundle.map(womBundle => )
-
 //  val either2: Checked[WomGraphWithResolvedImports]
+
+  val bundle = languageFactory.getWomBundle(mainFileContents, None, "{}", importResolvers, List(languageFactory))
 
   val either: Checked[WomGraphWithResolvedImports] = for {
     //    inputsContents <- readContent(mainFileContents)
