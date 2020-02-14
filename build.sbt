@@ -55,3 +55,12 @@ lazy val portal = project
     addCommandAlias("testAll", "; test ; it:test")
   )
   .dependsOn(datasource)
+
+lazy val womtool = (project in file("./womtool"))
+  .settings(
+    unmanagedJars in Compile += file("./lib/womtool-48.jar"),
+    name := "womTool",
+    commonSettings,
+    libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies ++ macwire ++ testContainers
+  )
+  .dependsOn()
