@@ -1,9 +1,7 @@
 package cromwell.pipeline
 
 import cromwell.languages.util.ImportResolver.{ DirectoryResolver, HttpResolver, ImportResolver }
-import cromwell.pipeline.WomTool4.{ bundle, languageFactory }
 import womtool.input.{ WomGraphMaker, WomGraphWithResolvedImports }
-
 import java.nio.file.{ Files, Paths }
 
 import com.typesafe.config.ConfigFactory
@@ -15,12 +13,24 @@ import languages.wdl.biscayne.WdlBiscayneLanguageFactory
 import languages.wdl.draft2.WdlDraft2LanguageFactory
 import languages.wdl.draft3.WdlDraft3LanguageFactory
 import wom.executable.WomBundle
-import wom.expression.NoIoFunctionSet
-
-import scala.collection.JavaConverters._
-import scala.util.Try
+import wom.expression.{ NoIoFunctionSet }
+import womtool.WomtoolMain.{ SuccessfulTermination, UnsuccessfulTermination }
+import wom.graph.{
+  ExternalGraphInputNode,
+  OptionalGraphInputNode,
+  OptionalGraphInputNodeWithDefault,
+  RequiredGraphInputNode
+}
+import spray.json._
+import spray.json.DefaultJsonProtocol._
+import wom.expression.WomExpression
+import wom.types.{ WomCompositeType, WomOptionalType, WomType }
+import common.Checked
+import scala.util.{ Failure, Success, Try }
 
 object WomTool5 extends App {
+
+  val showOptionals: Boolean = false
 
   val mainFileContents =
     """
@@ -51,56 +61,11 @@ object WomTool5 extends App {
   val chackedBundle: Checked[WomBundle] =
     languageFactory.getWomBundle(mainFileContents, None, "{}", importResolvers, List(languageFactory))
 
-//  val womBundle = bundle.map((_, languageFactory))
-//  val womBundle: = bundle.map(wb => (_, languageFactory))
-
-//  val dummyBundle: WomBundle = womBundle match {
-//    case Left(l) => l
-//    case Right(s) => womBundle
-//  }
-
-//  val dummyBundle: (Any, LanguageFactory) = womBundle.flatMap(_, ))
-
-//  private def stringToChecked(st: String): Checked[String] = st.to
-
-//  for {
-//    inputsContents <- readFile(inputsFile.toAbsolutePath.pathAsString)
-//    validatedWomNamespace <- languageFactory.createExecutable(
-//      womBundle,
-//      inputsContents,
-//      NoIoFunctionSet
-//    )
-//  } yield WomGraphWithResolvedImports(
-//    validatedWomNamespace.executable.graph,
-//    womBundle.resolvedImportRecords
-//  )
-//
-//  for {
-//    executableCallable <- bundles.toExecutableCallable
-//  } yield WomGraphWithResolvedImports(
-//    executableCallable.graph,
-//    bundle.resolvedImportRecords
-//  )
-
-  //*************************************************
-
-//  for {
-//    executableCallable <- womBundle.toExecutableCallable
-//  } yield
-//    WomGraphWithResolvedImports(
-//      executableCallable.graph,
-//      womBundle.resolvedImportRecords
-//    )
-
-  //*************************************************
-
-//  val either2: Checked[WomGraphWithResolvedImports]
-
   val bundle = languageFactory.getWomBundle(mainFileContents, None, "{}", importResolvers, List(languageFactory))
 
   val either: Checked[WomGraphWithResolvedImports] = for {
-    //    inputsContents <- readContent(mainFileContents)
-    inputsContents <- readFile("inputsFile.toAbsolutePath.pathAsString")
+    inputsContents <- readContent(mainFileContents)
+//    inputsContents <- readFile("inputsFile.toAbsolutePath.pathAsString")
     womBundle <- bundle
     validatedWomNamespace <- languageFactory.createExecutable(
       womBundle,
@@ -115,29 +80,55 @@ object WomTool5 extends App {
     )
   }
 
-  //*************************************************
+  either match {
+    case Right(graphWithImports) =>
+      Try(graphWithImports.graph.externalInputNodes.toJson(inputNodeWriter(showOptionals)).prettyPrint) match {
+        case Success(json)  => SuccessfulTermination(json + System.lineSeparator)
+        case Failure(error) => UnsuccessfulTermination(error.getMessage)
+      }
+    case Left(errors) => UnsuccessfulTermination(errors.toList.mkString(System.lineSeparator))
+  }
 
-//  private def readContent(filePath: String): Either[NonEmptyList[String], A] =
+  private def inputNodeWriter( //TODO! - this method was initially private in womtool.Validate!
+    showOptionals: Boolean
+  ): JsonWriter[Set[ExternalGraphInputNode]] = set => {
+
+    val valueMap: Seq[(String, JsValue)] = set.toList.collect {
+      case RequiredGraphInputNode(_, womType, nameInInputSet, _) =>
+        nameInInputSet -> womTypeToJson(womType, None)
+      case OptionalGraphInputNode(_, womOptionalType, nameInInputSet, _) if showOptionals =>
+        nameInInputSet -> womTypeToJson(womOptionalType, None)
+      case OptionalGraphInputNodeWithDefault(
+          _,
+          womType,
+          default,
+          nameInInputSet,
+          _
+          ) if showOptionals =>
+        nameInInputSet -> womTypeToJson(womType, Option(default))
+    }
+
+    valueMap.toMap.toJson
+  }
+
+  private def womTypeToJson(
+    womType: WomType, //TODO! - this method was initially private in womtool.Validate!
+    default: Option[WomExpression]
+  ): JsValue =
+    (womType, default) match {
+      case (WomCompositeType(typeMap, _), _) =>
+        JsObject(typeMap.map {
+          case (name, wt) => name -> womTypeToJson(wt, None)
+        })
+      case (_, Some(d)) =>
+        JsString(
+          s"${womType.stableName} (optional, default = ${d.sourceString})"
+        )
+      case (_: WomOptionalType, _) =>
+        JsString(s"${womType.stableName} (optional)")
+      case (_, _) => JsString(s"${womType.stableName}")
+    }
+
   private def readContent(wdlContent: String): Checked[String] =
     Try(mainFileContents).toChecked
-
-  //**************************************************
-
-  private def readFile(filePath: String): Checked[String] =
-    Try(
-      Files.readAllLines(Paths.get(filePath)).asScala.mkString(System.lineSeparator())
-    ).toChecked
-
 }
-/*
-
-
-
-
-
-
-
-
-
-
- */

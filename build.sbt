@@ -57,7 +57,8 @@ lazy val portal = project
   )
   .dependsOn(datasource)
 
-lazy val womtool = (project in file("."))
+//lazy val womtool = (project in file("."))
+lazy val womtool = project
   .settings(
 //    unmanagedJars in Compile += file(Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/womtool-48.jar"),
     unmanagedJars in Compile += file("./lib/womtool-48.jar"),
