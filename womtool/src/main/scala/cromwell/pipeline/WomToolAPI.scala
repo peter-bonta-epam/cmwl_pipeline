@@ -10,7 +10,6 @@ import wom.executable.WomBundle
 trait WomToolAPI {
 
   def validate(content: String, importResolver: Any): Either[NonEmptyList[String], (WomBundle, LanguageFactory)]
-
 //  def inputs(contents: String, importResolver: Any): Either[String, String]
 
   def inputs(workflowJson: WorkflowJson, importResolver: Any): Either[NonEmptyList[String], JsValue]

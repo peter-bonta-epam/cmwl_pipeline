@@ -42,31 +42,40 @@ object WomTool2 extends App {
 
   def readContent(wdlContent: String): Checked[String] = Try(wdlContent).toChecked
 
-//  private def readFile(filePath: String): Checked[String] =
-//    Try(
-//      Files.readAllLines(Paths.get(filePath)).asScala.mkString(System.lineSeparator())
-//    ).toChecked
+//  private def readContent(wdlContent: String): Checked[String] =
+//    Try(mainFileContents).toChecked
 
-  println(readFile("/home/benderbej/WDL/workflows/hello.wdl").right)
+  private def readFile(filePath: String): Checked[String] =
+    Try(
+      Files.readAllLines(Paths.get("/home/benderbej/WDL/workflows/hello.wdl")).asScala.mkString(System.lineSeparator())
+    ).toChecked
+
+//  println(readFile("/home/benderbej/WDL/workflows/hello.wdl").right)
 
   def getInputs(mainFileContents: WorkflowJson, importResolver: Any): Either[String, String] = {
 
-    val workFlowJson: WorkflowJson = """
-                                       |task hello {
-                                       |  String name
-                                       |
-                                       |  command {
-                                       |    echo 'Hello world!'
-                                       |  }
-                                       |  output {
-                                       |    File response = stdout()
-                                       |  }
-                                       |}
-                                       |
-                                       |workflow test {
-                                       |  call hello
-                                       |}
-                                       |""".stripMargin
+    val workFlowJson: String = """
+                                 |task hello {
+                                 |  String name
+                                 |
+                                 |  command {
+                                 |    echo 'Hello world!'
+                                 |  }
+                                 |  output {
+                                 |    File response = stdout()
+                                 |  }
+                                 |}
+                                 |
+                                 |workflow test {
+                                 |  call hello
+                                 |}
+                                 |""".stripMargin
+
+    val rf: Checked[String] = readFile("")
+
+//    val workflowJson: String = {
+//      s @ String() <- fileCont
+//    } yield s
 
     val showOptionals: Boolean = false
 
@@ -99,22 +108,35 @@ object WomTool2 extends App {
 
     println("rc.isLeft" + rc.isLeft)
 
+//    val either: Checked[WomGraphWithResolvedImports] = for {
+////      workFlowJson <- readContent(workFlowJson)
+////      inputsContents <- readFile("/home/benderbej/WDL/workflows/hello.wdl")
+//      womBundle <- bundle
+//      validatedWomNamespace <- languageFactory.createExecutable(
+//        womBundle,
+//        workFlowJson,
+//        NoIoFunctionSet
+//      )
+//    } yield {
+//      val records = womBundle.resolvedImportRecords
+//      WomGraphWithResolvedImports(
+//        validatedWomNamespace.executable.graph,
+//        records
+//      )
+//    }
+
     val either: Checked[WomGraphWithResolvedImports] = for {
-//      inputsContents <- rc
-//      inputsContents <- readFile("/home/benderbej/WDL/workflows/hello.wdl")
+      inputsContents <- readFile("")
       womBundle <- bundle
       validatedWomNamespace <- languageFactory.createExecutable(
         womBundle,
-        workFlowJson,
+        inputsContents,
         NoIoFunctionSet
       )
-    } yield {
-      val records = womBundle.resolvedImportRecords
-      WomGraphWithResolvedImports(
-        validatedWomNamespace.executable.graph,
-        records
-      )
-    }
+    } yield WomGraphWithResolvedImports(
+      validatedWomNamespace.executable.graph,
+      womBundle.resolvedImportRecords
+    )
 
     def inputNodeWriter( //TODO! - this method was initially private in womtool.inputs! - cant create womtool.inputs.Inputs without Path!
       showOptionals: Boolean

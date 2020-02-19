@@ -22,11 +22,11 @@ import scala.util.Try
 
 object AppWT extends App {
 
-  val x2 = WomtoolMain.runWomtool(Seq("validate", "-"))
-  val y2 = WomtoolMain.runWomtool(Seq("validate", "-"))
+  val x2 = WomtoolMain.runWomtool(Seq("validate", "/home/benderbej/WDL/workflows/hello.wdl"))
+//  val y2 = WomtoolMain.runWomtool(Seq("validate", "-"))
 
-  val x3 = WomtoolMain.runWomtool(Seq("inputs", "-"))
-  val y3 = WomtoolMain.runWomtool(Seq("inputs", "-"))
+  val x3 = WomtoolMain.runWomtool(Seq("inputs", "/home/benderbej/WDL/workflows/hello.wdl"))
+//  val y3 = WomtoolMain.runWomtool(Seq("inputs", "-"))
 
   //  println("x=" + x + x.returnCode)
   //  println("y=" + y.returnCode + y.output)
@@ -35,7 +35,7 @@ object AppWT extends App {
 //  println("y2=" + y2.returnCode + y2.stdout)
 
   println("x3=" + x3 + x3.returnCode)
-  println("y3=" + y3.returnCode + y3.stdout)
+//  println("y3=" + y3.returnCode + y3.stdout)
 
   def getBundle(mainFile: Path): Checked[WomBundle] = getBundleAndFactory(mainFile).map(_._1)
 

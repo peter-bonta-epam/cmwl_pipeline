@@ -10,9 +10,45 @@ class WomToolTest extends WordSpec with Matchers {
 
   val womTool: WomTool = new WomTool
 
+  val correctWdl =
+    """
+      |task hello {
+      |  String name
+      |
+      |  command {
+      |    echo 'Hello world!'
+      |  }
+      |  output {
+      |    File response = stdout()
+      |  }
+      |}
+      |
+      |workflow test {
+      |  call hello
+      |}
+      |""".stripMargin
+
+  val inCorrectWdl =
+    """
+      |task hessllo {
+      |  String name
+      |
+      |  command {
+      |    echo 'Hello world!'
+      |  }
+      |  output {
+      |    File response = stdout()
+      |  }
+      |}
+      |
+      |workflow test {
+      |  call hello
+      |}
+      |""".stripMargin
+
   "WomToolAPI" when {
 
-    "get womBundle" should {
+    "get and validate womBundle" should {
 
       "return the correct bundle" in {
 
@@ -64,6 +100,52 @@ class WomToolTest extends WordSpec with Matchers {
 
         res.isRight should be(false)
         res.left.get.head.slice(0, 5) should be("ERROR")
+      }
+    }
+
+    "get an inputs from wdl" should {
+
+      "return the correct json" in {
+
+        val content =
+          """
+            |task hello {
+            |  String name
+            |
+            |  commandZZZdd {
+            |    echo 'Hello world!'
+            |  }
+            |  output {
+            |    File response = stdout()
+            |  }
+            |}
+            |
+            |workflow test {
+            |  call hello
+            |}
+            |""".stripMargin
+
+//        val womTool2: WomTool = new WomTool
+
+        val res: Either[NonEmptyList[String], String] =
+          womTool.inputs(content, HttpResolver(relativeTo = None))
+
+//        val res: Either[NonEmptyList[String], String] =
+//          womTool2.inputs(content, HttpResolver(relativeTo = None))
+
+        res.isRight should be(true)
+//        res.right.get.toString should be(
+//          """
+//            |{
+//            |  "test.hello.name": "String"
+//            |}
+//            |"""
+////          """
+////            |{
+////            |  "test.hello.name": "String"
+////            |}
+////            |""".stripMargin
+//        )
       }
     }
   }
