@@ -17,11 +17,9 @@ import womtool.inputs.Inputs
 
 import scala.util.Try
 
-//class WomTool extends WomToolAPI {
-class WomTool {
+class WomTool extends WomToolAPI {
 
   def validate(
-//  override def validate(
     content: String,
     importResolver: Any
   ): Either[NonEmptyList[String], (WomBundle, LanguageFactory)] = {
