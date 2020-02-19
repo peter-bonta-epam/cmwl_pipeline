@@ -8,7 +8,7 @@ import wom.executable.WomBundle
 
 class WomToolTest extends WordSpec with Matchers {
 
-  val womTool: WomTool = new WomTool
+  val womTool: WomToolAPI = new WomTool
 
   val correctWdl =
     """
@@ -52,51 +52,16 @@ class WomToolTest extends WordSpec with Matchers {
 
       "return the correct bundle" in {
 
-        val content =
-          """
-            |task hello {
-            |  String name
-            |
-            |  command {
-            |    echo 'Hello world!'
-            |  }
-            |  output {
-            |    File response = stdout()
-            |  }
-            |}
-            |
-            |workflow test {
-            |  call hello
-            |}
-            |""".stripMargin
-
         val res: Either[NonEmptyList[String], (WomBundle, LanguageFactory)] =
-          womTool.validate(content, HttpResolver(relativeTo = None))
+          womTool.validate(correctWdl, HttpResolver(relativeTo = None))
 
         res.isRight should be(true)
         res.right.get._1.allCallables("hello").name should be("hello")
       }
       "return the error message" in {
-        val content =
-          """
-            |task hello {
-            |  String name
-            |
-            |  commandZZZdd {
-            |    echo 'Hello world!'
-            |  }
-            |  output {
-            |    File response = stdout()
-            |  }
-            |}
-            |
-            |workflow test {
-            |  call hello
-            |}
-            |""".stripMargin
 
         val res: Either[NonEmptyList[String], (WomBundle, LanguageFactory)] =
-          womTool.validate(content, HttpResolver(relativeTo = None))
+          womTool.validate(inCorrectWdl, HttpResolver(relativeTo = None))
 
         res.isRight should be(false)
         res.left.get.head.slice(0, 5) should be("ERROR")
@@ -105,47 +70,19 @@ class WomToolTest extends WordSpec with Matchers {
 
     "get an inputs from wdl" should {
 
-      "return the correct json" in {
-
-        val content =
-          """
-            |task hello {
-            |  String name
-            |
-            |  commandZZZdd {
-            |    echo 'Hello world!'
-            |  }
-            |  output {
-            |    File response = stdout()
-            |  }
-            |}
-            |
-            |workflow test {
-            |  call hello
-            |}
-            |""".stripMargin
-
-//        val womTool2: WomTool = new WomTool
+      "return the correct input json" in {
 
         val res: Either[NonEmptyList[String], String] =
-          womTool.inputs(content, HttpResolver(relativeTo = None))
-
-//        val res: Either[NonEmptyList[String], String] =
-//          womTool2.inputs(content, HttpResolver(relativeTo = None))
+          womTool.inputs(correctWdl, HttpResolver(relativeTo = None))
 
         res.isRight should be(true)
-//        res.right.get.toString should be(
-//          """
-//            |{
-//            |  "test.hello.name": "String"
-//            |}
-//            |"""
-////          """
-////            |{
-////            |  "test.hello.name": "String"
-////            |}
-////            |""".stripMargin
-//        )
+      }
+      "return the ERROR" in {
+
+        val res: Either[NonEmptyList[String], String] =
+          womTool.inputs(inCorrectWdl, HttpResolver(relativeTo = None))
+
+        res.isRight should be(false)
       }
     }
   }

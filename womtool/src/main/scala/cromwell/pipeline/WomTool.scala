@@ -51,7 +51,7 @@ class WomTool extends WomToolAPI {
       Try(Files.createTempFile("my-file", ".wdl"))
     }
 
-    def writeTempFile(path: java.nio.file.Path): Try[java.nio.file.Path] = {
+    def writeTmpFile(path: java.nio.file.Path): Try[java.nio.file.Path] = {
       import java.nio.file.Files
       Try(Files.write(path, wdlFileContent.getBytes()))
     }
@@ -74,7 +74,7 @@ class WomTool extends WomToolAPI {
 
     val tmpPath: Try[DefaultPath] = for {
       created <- createTmpFile(wdlFileContent)
-      written <- writeTempFile(created)
+      written <- writeTmpFile(created)
       tPath <- getTryiedPath(written)
     } yield tPath
 
@@ -82,5 +82,4 @@ class WomTool extends WomToolAPI {
 
     getRes(getTermination(tmpPath.get))
   }
-
 }

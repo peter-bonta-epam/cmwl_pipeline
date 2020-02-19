@@ -9,6 +9,6 @@ trait WomToolAPI {
 
   def validate(content: String, importResolver: Any): Either[NonEmptyList[String], (WomBundle, LanguageFactory)]
 
-  def inputs(workflowJson: WorkflowJson, importResolver: Any): Either[NonEmptyList[String], String]
+  def inputs(content: String, importResolver: Any): Either[NonEmptyList[String], String]
 
 }
